@@ -32,7 +32,6 @@ export const Login: React.FC = () => {
 
           await updateProfile(userCredential.user, { displayName: name });
           
-          // Connect demo athlete to demo coach
           const userData: any = {
             uid: userCredential.user.uid,
             email,
@@ -43,14 +42,12 @@ export const Login: React.FC = () => {
             createdAt: new Date().toISOString()
           };
 
-          if (email === 'sporcu@aimtrack.com') {
-            userData.coachId = 'demo-coach-id'; // This is a placeholder, in real scenario we'd use actual UID
-          }
-          if (email === 'antrenor@aimtrack.com') {
-            userData.uid = 'demo-coach-id'; // Force hardcoded ID for demo link
-          }
-
-          await setDoc(doc(db, 'users', userData.uid), userData);
+          // For demo purposes, we link the demo athlete to a specific ID 
+          // and we'll make sure the demo coach uses that ID or we link them differently.
+          // Let's use a simpler approach: just create them normally.
+          // If we want them linked, we should ideally have the coach created first.
+          
+          await setDoc(doc(db, 'users', userCredential.user.uid), userData);
         } else {
           throw err;
         }
