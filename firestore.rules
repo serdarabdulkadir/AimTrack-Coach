@@ -48,14 +48,7 @@ service cloud.firestore {
     // SCORES (Performance Logging)
     // -------------------------------------------------------------------------
     match /scores/{scoreId} {
-      allow get: if isSignedIn() && (
-        isOwner(resource.data.athleteId) || 
-        isCoachOf(resource.data.athleteId)
-      );
-      allow list: if isSignedIn() && (
-        resource.data.athleteId == request.auth.uid ||
-        resource.data.coachId == request.auth.uid
-      );
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && (
         isOwner(incoming().athleteId) || 
         isCoachOf(incoming().athleteId)

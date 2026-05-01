@@ -12,21 +12,39 @@ interface RankingAthlete {
   totalArrows: number;
 }
 
+enum OperationType {
+  LIST = 'list',
+  GET = 'get',
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    operationType,
+    path,
+    timestamp: new Date().toISOString()
+  };
+  console.error('Firestore Error details:', JSON.stringify(errInfo));
+  // We throw a standardized error that can be caught by the component
+  throw error; 
+}
+
 export const Leaderboard: React.FC = () => {
   const { user, role, userData } = useAuth();
   const [rankings, setRankings] = useState<RankingAthlete[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [scope, setScope] = useState<'global' | 'team'>('global');
 
   useEffect(() => {
     const fetchRankings = async () => {
       setLoading(true);
+      setError(null);
       try {
         const usersRef = collection(db, 'users');
         let qUsers;
 
         if (scope === 'team' && user) {
-          // Filter athletes belonging to the same coach
           const coachId = role === 'coach' ? user.uid : userData?.coachId;
           if (coachId) {
             qUsers = query(
@@ -35,18 +53,21 @@ export const Leaderboard: React.FC = () => {
               where('coachId', '==', coachId)
             );
           } else {
-            // Fallback for team filter if no coach connection exists
             qUsers = query(usersRef, where('role', '==', 'athlete'));
           }
         } else {
-          // Global: All athletes
           qUsers = query(usersRef, where('role', '==', 'athlete'));
         }
 
-        const usersSnap = await getDocs(qUsers);
-        const rankingsData: RankingAthlete[] = [];
+        let usersSnap;
+        try {
+          usersSnap = await getDocs(qUsers);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, 'users');
+          return;
+        }
 
-        for (const userDoc of usersSnap.docs) {
+        const rankingsData = await Promise.all(usersSnap.docs.map(async (userDoc) => {
           const uData = userDoc.data();
           const uid = userDoc.id;
           
@@ -57,28 +78,35 @@ export const Leaderboard: React.FC = () => {
             orderBy('createdAt', 'desc'),
             limit(10)
           );
-          const scoresSnap = await getDocs(qScores);
           
-          if (scoresSnap.empty) continue;
+          try {
+            const scoresSnap = await getDocs(qScores);
+            if (scoresSnap.empty) return null;
 
-          const scores = scoresSnap.docs.map(d => d.data().score as number);
-          const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-          const latestScore = scores[0];
-          const powerScore = Math.round((avgScore * 0.7) + (latestScore * 0.3));
-          
-          rankingsData.push({
-            uid,
-            name: uData.name || 'İsimsiz Sporcu',
-            avgScore: Math.round(avgScore * 10) / 10,
-            powerScore,
-            totalArrows: scoresSnap.docs.reduce((acc, d) => acc + (d.data().arrowCount || 0), 0)
-          });
-        }
+            const scores = scoresSnap.docs.map(d => d.data().score as number);
+            const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+            const latestScore = scores[0];
+            const powerScore = Math.round((avgScore * 0.7) + (latestScore * 0.3));
+            
+            return {
+              uid,
+              name: uData.name || 'İsimsiz Sporcu',
+              avgScore: Math.round(avgScore * 10) / 10,
+              powerScore,
+              totalArrows: scoresSnap.docs.reduce((acc, d) => acc + (d.data().arrowCount || 0), 0)
+            };
+          } catch (err) {
+            console.warn(`Could not fetch scores for user ${uid}`, err);
+            return null;
+          }
+        }));
 
-        rankingsData.sort((a, b) => b.powerScore - a.powerScore);
-        setRankings(rankingsData);
-      } catch (error) {
-        console.error("Leaderboard fetch error:", error);
+        const filteredRankings = rankingsData.filter((r): r is RankingAthlete => r !== null);
+        filteredRankings.sort((a, b) => b.powerScore - a.powerScore);
+        setRankings(filteredRankings);
+      } catch (err: any) {
+        console.error("Leaderboard component error:", err);
+        setError(err.message || "Sıralama verileri alınırken bir hata oluştu.");
       } finally {
         setLoading(false);
       }
@@ -92,6 +120,23 @@ export const Leaderboard: React.FC = () => {
       <div className="flex flex-col items-center justify-center p-20 space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-zinc-300" />
         <p className="text-zinc-400 font-medium italic">Sıralama hesaplanıyor...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-10 text-center space-y-4">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto">
+           <Users className="w-8 h-8 text-red-200" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-zinc-900 font-bold">Erişim Hatası</p>
+          <p className="text-zinc-400 text-xs italic max-w-xs mx-auto">
+            Veriler alınırken bir sorun oluştu. Lütfen oturumunuzu kontrol edin veya daha sonra tekrar deneyin.
+          </p>
+          <p className="text-[10px] text-zinc-300 font-mono mt-4">{error}</p>
+        </div>
       </div>
     );
   }
