@@ -47,32 +47,33 @@ export const UserProfile: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-zinc-100 overflow-hidden border-4 border-white shadow-xl">
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`} alt="avatar" />
+    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 md:space-y-8">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white md:bg-transparent p-6 md:p-0 rounded-3xl md:rounded-none border border-zinc-100 md:border-none shadow-sm md:shadow-none">
+        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-center md:text-left w-full md:w-auto">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-zinc-100 overflow-hidden border-4 border-white shadow-xl shrink-0">
+            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`} alt="avatar" className="w-full h-full object-cover" />
           </div>
-          <div>
+          <div className="min-w-0 w-full">
             {!editing ? (
-              <h2 className="text-3xl font-bold tracking-tight">{formData.name || 'Sporcu'}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight truncate">{formData.name || 'Sporcu'}</h2>
             ) : (
               <input 
                 value={formData.name}
+                autoFocus
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="text-3xl font-bold tracking-tight bg-zinc-50 border-none rounded-lg px-2 py-1 outline-none focus:ring-2 ring-zinc-100 w-full"
+                className="text-2xl md:text-3xl font-bold tracking-tight bg-zinc-50 border-none rounded-xl px-4 py-2 outline-none focus:ring-2 ring-zinc-100 w-full text-center md:text-left"
                 placeholder="İsim giriniz"
               />
             )}
-            <div className="flex items-center gap-2 text-zinc-500 mt-1">
-              <Mail className="w-4 h-4" />
-              <span className="text-sm">{user.email}</span>
+            <div className="flex items-center justify-center md:justify-start gap-2 text-zinc-500 mt-1">
+              <Mail className="w-4 h-4 shrink-0" />
+              <span className="text-xs md:text-sm truncate">{user.email}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           {success && (
-            <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl text-xs font-bold border border-emerald-100">
+            <div className="flex items-center justify-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl text-xs font-bold border border-emerald-100">
               <CheckCircle2 className="w-4 h-4" />
               Güncellendi
             </div>
@@ -80,22 +81,22 @@ export const UserProfile: React.FC = () => {
           {!editing ? (
             <button 
               onClick={() => setEditing(true)}
-              className="bg-black text-white px-6 py-2 rounded-xl font-bold text-sm shadow-lg shadow-black/10 hover:scale-105 transition-all"
+              className="w-full sm:w-auto bg-black text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-black/10 hover:scale-[1.02] transition-all active:scale-95"
             >
               Profili Düzenle
             </button>
           ) : (
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
               <button 
                 onClick={() => setEditing(false)}
-                className="bg-zinc-100 text-zinc-500 px-6 py-2 rounded-xl font-bold text-sm hover:bg-zinc-200 transition-all"
+                className="flex-1 bg-zinc-100 text-zinc-500 px-6 py-3 rounded-2xl font-bold text-sm hover:bg-zinc-200 transition-all active:scale-95"
               >
                 İptal
               </button>
               <button 
                 onClick={handleSave}
                 disabled={loading}
-                className="bg-black text-white px-6 py-2 rounded-xl font-bold text-sm shadow-lg shadow-black/10 hover:scale-105 transition-all flex items-center gap-2"
+                className="flex-1 bg-black text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-black/10 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Kaydet

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Target, X, CheckCircle2, ChevronRight, History, Play, Save, Trash2 } from 'lucide-react';
+import { Target, X, CheckCircle2, ChevronRight, History, Play, Save, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 interface TrainingSessionProps {
   athleteId: string;
@@ -321,18 +322,76 @@ export const TrainingSession: React.FC<TrainingSessionProps> = ({ athleteId, coa
                  <div className="flex justify-between items-center mb-6">
                     <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-500 italic">İstatistik Analizi</h4>
                  </div>
-                 <div className="space-y-4">
-                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                       <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">Disiplin</span>
-                       <span className="font-bold text-sm">{currentConfig.name}</span>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                           <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">Disiplin</span>
+                           <span className="font-bold text-sm">{currentConfig.name}</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                           <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">X Sayısı</span>
+                           <span className="font-bold text-sm">{[...allEnds, currentArrows].flat().filter(x => x === 'X').length}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                           <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">Ortalama / Ok</span>
+                           <span className="font-mono font-bold text-emerald-400 text-lg">{((allEnds.flat().length + currentArrows.length) > 0 ? currentTotal / (allEnds.flat().length + currentArrows.length) : 0).toFixed(2)}</span>
+                        </div>
                     </div>
-                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                       <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">X Sayısı</span>
-                       <span className="font-bold text-sm">{[...allEnds, currentArrows].flat().filter(x => x === 'X').length}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                       <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">Ortalama / Ok</span>
-                       <span className="font-mono font-bold text-emerald-400 text-lg">{((allEnds.flat().length + currentArrows.length) > 0 ? currentTotal / (allEnds.flat().length + currentArrows.length) : 0).toFixed(2)}</span>
+                    
+                    <div className="h-[220px] w-full">
+                       <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={Object.entries(
+                                [...allEnds, currentArrows].flat().reduce((acc: Record<string, number>, val) => {
+                                  acc[val] = (acc[val] || 0) + 1;
+                                  return acc;
+                                }, {})
+                              )
+                              .map(([name, value]) => ({ name: String(name), value }))
+                              .sort((a, b) => {
+                                const order: Record<string, number> = { 'X': 11, '10': 10, '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3, '2': 2, '1': 1, 'M': 0 };
+                                return (order[b.name] || 0) - (order[a.name] || 0);
+                              })}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={45}
+                              outerRadius={65}
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {Object.entries(
+                                [...allEnds, currentArrows].flat().reduce((acc: Record<string, number>, val) => {
+                                  acc[val] = (acc[val] || 0) + 1;
+                                  return acc;
+                                }, {})
+                              )
+                              .map(([name, value]) => ({ name: String(name), value }))
+                              .sort((a, b) => {
+                                const order: Record<string, number> = { 'X': 11, '10': 10, '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3, '2': 2, '1': 1, 'M': 0 };
+                                return (order[b.name] || 0) - (order[a.name] || 0);
+                              })
+                              .map((entry, index) => {
+                                let color = '#E4E4E7';
+                                if (['X', '10', '9'].includes(entry.name)) color = '#FACC15';
+                                else if (['8', '7'].includes(entry.name)) color = '#EF4444';
+                                else if (['6', '5'].includes(entry.name)) color = '#0EA5E9';
+                                else if (['4', '3'].includes(entry.name)) color = '#18181B';
+                                return <Cell key={`cell-${index}`} fill={color} stroke={entry.name === '4' || entry.name === '3' ? '#333' : 'none'} />;
+                              })}
+                            </Pie>
+                            <Tooltip 
+                                contentStyle={{ background: '#18181b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px' }}
+                                itemStyle={{ color: '#fff' }}
+                            />
+                            <Legend 
+                                verticalAlign="bottom" 
+                                height={36} 
+                                iconType="circle"
+                                wrapperStyle={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}
+                            />
+                          </PieChart>
+                       </ResponsiveContainer>
                     </div>
                  </div>
               </div>

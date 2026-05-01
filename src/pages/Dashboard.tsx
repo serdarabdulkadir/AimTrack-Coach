@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Target, TrendingUp, Calendar, ArrowRight, User as UserIcon, Settings, LogOut, Camera, ChevronRight, Play, X } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { TrainingPlan } from '../components/TrainingPlan';
@@ -419,45 +419,115 @@ export const Dashboard: React.FC = () => {
               </header>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-3xl p-4 md:p-8 border border-zinc-200 shadow-sm">
-                   <div className="flex items-center justify-between mb-8">
-                      <h3 className="text-lg font-bold">Antrenman İstikrarı</h3>
-                      <select className="bg-zinc-100 border-none rounded-lg px-3 py-1 text-xs font-bold text-zinc-600 focus:ring-0">
-                         <option>Son 7 Gün</option>
-                         <option>Son 30 Gün</option>
-                      </select>
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Antrenman İstikrarı */}
+                  <div className="bg-white rounded-3xl p-4 md:p-8 border border-zinc-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-8">
+                        <h3 className="text-lg font-bold">Antrenman İstikrarı</h3>
+                        <select className="bg-zinc-100 border-none rounded-lg px-3 py-1 text-xs font-bold text-zinc-600 focus:ring-0">
+                           <option>Son 7 Gün</option>
+                           <option>Son 30 Gün</option>
+                        </select>
+                     </div>
+                     <div className="h-[300px] w-full">
+                       <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length > 0 ? scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter) : (scoreFilter === 'all' ? data : [])}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                            <XAxis 
+                              dataKey="name" 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fontSize: 12, fill: '#aaa' }}
+                              dy={10}
+                            />
+                            <YAxis 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fontSize: 12, fill: '#aaa' }}
+                              domain={[270, 305]}
+                            />
+                            <Tooltip 
+                              contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} 
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="score" 
+                              stroke="#000" 
+                              strokeWidth={3} 
+                              dot={{ r: 4, fill: '#000', strokeWidth: 2, stroke: '#fff' }}
+                              activeDot={{ r: 6 }}
+                            />
+                          </LineChart>
+                       </ResponsiveContainer>
+                     </div>
+                  </div>
+
+                  {/* Puan Dağılımı */}
+                  <div className="bg-white rounded-3xl p-6 md:p-8 border border-zinc-200 shadow-sm flex flex-col">
+                     <div className="flex items-center justify-between mb-6">
+                       <h3 className="text-lg font-bold">Puan Dağılımı</h3>
+                       <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">Son Performanslar</p>
+                     </div>
+                     <div className="h-[250px] w-full">
+                       <ResponsiveContainer width="100%" height="100%">
+                         <PieChart>
+                           <Pie
+                             data={[
+                               { name: '10s/Xs', value: scores.filter(s => s.score > 290).length || 5 },
+                               { name: '9s', value: scores.filter(s => s.score <= 290 && s.score > 280).length || 8 },
+                               { name: '8s/Altı', value: scores.filter(s => s.score <= 280).length || 2 },
+                             ]}
+                             cx="50%"
+                             cy="50%"
+                             innerRadius={60}
+                             outerRadius={80}
+                             paddingAngle={5}
+                             dataKey="value"
+                           >
+                             <Cell fill="#10B981" />
+                             <Cell fill="#3B82F6" />
+                             <Cell fill="#F59E0B" />
+                           </Pie>
+                           <Tooltip />
+                           <Legend verticalAlign="bottom" height={36}/>
+                         </PieChart>
+                       </ResponsiveContainer>
+                     </div>
+                  </div>
+
+                  {/* Antrenman Geçmişi */}
+                  <div className="bg-white rounded-3xl p-6 md:p-8 border border-zinc-200 shadow-sm">
+                   <div className="flex items-center justify-between mb-6">
+                     <h3 className="text-lg font-bold">Antrenman Geçmişi</h3>
+                     <button className="text-[10px] font-bold uppercase text-zinc-400 hover:text-black transition-colors underline underline-offset-4">Tümünü Gör</button>
                    </div>
-                   <div className="h-[300px] w-full">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length > 0 ? scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter) : (scoreFilter === 'all' ? data : [])}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                          <XAxis 
-                            dataKey="name" 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fontSize: 12, fill: '#aaa' }}
-                            dy={10}
-                          />
-                          <YAxis 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fontSize: 12, fill: '#aaa' }}
-                            domain={[270, 305]}
-                          />
-                          <Tooltip 
-                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} 
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="score" 
-                            stroke="#000" 
-                            strokeWidth={3} 
-                            dot={{ r: 4, fill: '#000', strokeWidth: 2, stroke: '#fff' }}
-                            activeDot={{ r: 6 }}
-                          />
-                        </LineChart>
-                     </ResponsiveContainer>
+                   <div className="space-y-3">
+                      {scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).slice(0, 5).map(score => (
+                        <div key={score.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 hover:border-zinc-200 transition-all gap-4">
+                           <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
+                                <History className="w-5 h-5 text-zinc-400" />
+                              </div>
+                              <div className="min-w-0">
+                                 <p className="text-sm font-bold truncate">{score.label || 'Antrenman'}</p>
+                                 <p className="text-[10px] text-zinc-400 font-bold uppercase truncate">{score.createdAt?.toDate().toLocaleDateString('tr-TR')} • {score.targetType}</p>
+                              </div>
+                           </div>
+                           <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-4 border-t border-zinc-100 sm:border-none pt-3 sm:pt-0">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span className="font-mono font-black text-xl tracking-tighter">{score.score}</span>
+                              </div>
+                              <div className="flex gap-1">
+                                 <button onClick={() => setSelectedSession(score)} className="p-2.5 hover:bg-zinc-100 rounded-xl transition-colors"><Eye className="w-4 h-4 text-zinc-500" /></button>
+                                 <button onClick={() => handleDeleteScore(score.id)} className="p-2.5 hover:bg-red-50 rounded-xl text-red-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                           </div>
+                        </div>
+                      ))}
+                      {scores.length === 0 && <p className="text-center text-[10px] text-zinc-400 italic py-4">Henüz kayıt yok.</p>}
                    </div>
+                 </div>
                 </div>
 
                 <div className="space-y-6">
@@ -558,36 +628,6 @@ export const Dashboard: React.FC = () => {
                            <p className="text-sm font-medium opacity-60">Yeni AimTrack sistemi aktif edildi. Tekniğinizi videodan izlemeye başlayın.</p>
                         </div>
                      </div>
-                  </div>
-
-                  <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
-                    <h3 className="text-lg font-bold mb-4">Antrenman Geçmişi</h3>
-                    <div className="space-y-3">
-                       {scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).slice(0, 5).map(score => (
-                         <div key={score.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 hover:border-zinc-200 transition-all gap-4">
-                            <div className="flex items-center gap-3">
-                               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
-                                 <History className="w-5 h-5 text-zinc-400" />
-                               </div>
-                               <div className="min-w-0">
-                                  <p className="text-sm font-bold truncate">{score.label || 'Antrenman'}</p>
-                                  <p className="text-[10px] text-zinc-400 font-bold uppercase truncate">{score.createdAt?.toDate().toLocaleDateString('tr-TR')} • {score.targetType}</p>
-                               </div>
-                            </div>
-                            <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-4 border-t border-zinc-100 sm:border-none pt-3 sm:pt-0">
-                               <div className="flex items-center gap-2">
-                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                 <span className="font-mono font-black text-xl tracking-tighter">{score.score}</span>
-                               </div>
-                               <div className="flex gap-1">
-                                  <button onClick={() => setSelectedSession(score)} className="p-2.5 hover:bg-zinc-100 rounded-xl transition-colors"><Eye className="w-4 h-4 text-zinc-500" /></button>
-                                  <button onClick={() => handleDeleteScore(score.id)} className="p-2.5 hover:bg-red-50 rounded-xl text-red-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                               </div>
-                            </div>
-                         </div>
-                       ))}
-                       {scores.length === 0 && <p className="text-center text-xs text-zinc-400 italic py-4">Henüz kayıt bulunmuyor.</p>}
-                    </div>
                   </div>
                 </div>
               </div>

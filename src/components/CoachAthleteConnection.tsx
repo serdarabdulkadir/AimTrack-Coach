@@ -76,10 +76,10 @@ export const CoachTools: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm">
-        <h3 className="text-xl font-bold mb-4">Yeni Sporcu Davet Et</h3>
-        <form onSubmit={sendRequest} className="flex gap-4">
+    <div className="space-y-6 md:space-y-8">
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-zinc-200 shadow-sm">
+        <h3 className="text-lg md:text-xl font-bold mb-4">Yeni Sporcu Davet Et</h3>
+        <form onSubmit={sendRequest} className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-3 w-5 h-5 text-zinc-400" />
             <input 
@@ -87,21 +87,21 @@ export const CoachTools: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="sporcu@email.com"
-              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl py-2.5 pl-12 pr-4 outline-none focus:ring-2 ring-black/5"
+              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl py-3 pl-12 pr-4 outline-none focus:ring-2 ring-black/5 text-sm"
               required
             />
           </div>
           <button 
             type="submit" 
             disabled={isLoading}
-            className="bg-black text-white px-6 py-2 rounded-2xl font-bold text-sm flex items-center gap-2 hover:scale-105 transition-transform disabled:opacity-50"
+            className="bg-black text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform disabled:opacity-50 whitespace-nowrap active:scale-95 shadow-lg shadow-black/5"
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
             Davet Gönder
           </button>
         </form>
         {message && (
-          <p className={`mt-4 text-xs font-bold uppercase tracking-wider ${message.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+          <p className={`mt-4 text-[10px] md:text-xs font-bold uppercase tracking-wider ${message.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
             {message.text}
           </p>
         )}
@@ -164,7 +164,7 @@ export const AthleteRequests: React.FC = () => {
   if (requests.length === 0) return null;
 
   return (
-    <div className="fixed bottom-8 right-8 z-50">
+    <div className="fixed inset-x-4 bottom-4 sm:bottom-8 sm:right-8 sm:left-auto z-50 pointer-events-none">
       <AnimatePresence>
         {requests.map(req => (
           <motion.div 
@@ -172,25 +172,27 @@ export const AthleteRequests: React.FC = () => {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.5 }}
-            className="bg-zinc-900 text-white p-6 rounded-3xl border border-white/10 shadow-2xl flex items-center gap-6"
+            className="bg-zinc-900 text-white p-4 md:p-6 rounded-[24px] md:rounded-3xl border border-white/10 shadow-2xl flex flex-col sm:flex-row items-center gap-4 sm:gap-6 pointer-events-auto w-full max-w-sm sm:max-w-none ml-auto"
           >
-            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-              <Bell className="w-6 h-6 text-amber-400" />
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
+                <Bell className="w-5 h-5 md:w-6 md:h-6 text-amber-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold truncate">Yeni Antrenör İsteği</p>
+                <p className="text-[11px] md:text-xs text-zinc-400 truncate">{req.fromName} sizi davet etti.</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold">Yeni Antrenör İsteği</p>
-              <p className="text-xs text-zinc-400">{req.fromName} sizi kadrosuna eklemek istiyor.</p>
-            </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
               <button 
                 onClick={() => handleResponse(req.id, req.fromId, 'accepted')}
-                className="p-2 bg-green-600 rounded-xl hover:bg-green-700 transition-colors"
+                className="flex-1 sm:flex-none p-2.5 sm:p-2 bg-green-600 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center"
               >
                 <Check className="w-5 h-5" />
               </button>
               <button 
                 onClick={() => handleResponse(req.id, req.fromId, 'rejected')}
-                className="p-2 bg-zinc-800 rounded-xl hover:bg-zinc-700 transition-colors"
+                className="flex-1 sm:flex-none p-2.5 sm:p-2 bg-zinc-800 rounded-xl hover:bg-zinc-700 transition-colors flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>

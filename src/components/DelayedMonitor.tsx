@@ -117,43 +117,47 @@ export const DelayedMonitor: React.FC = () => {
   }, []);
   
   return (
-    <div className="flex flex-col gap-6 h-full p-6 bg-[#0a0a0a] text-white">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Gecikmeli Video Monitörü</h2>
-          <p className="text-zinc-400 text-sm">Gecikmeli görüntü akışı ile kendi tekniğinizi anlık analiz edin.</p>
+    <div className="flex flex-col gap-6 h-full p-4 md:p-6 bg-[#0a0a0a] text-white overflow-y-auto">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight">Gecikmeli Video Monitörü</h2>
+          <p className="text-zinc-400 text-xs md:text-sm max-w-md">Gecikmeli görüntü akışı ile kendi tekniğinizi anlık analiz edin.</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
-            <Clock className="w-4 h-4 text-zinc-400" />
-            <span className="text-sm font-mono">{delay}sn Gecikme</span>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="flex items-center justify-between gap-3 bg-zinc-900 px-4 py-2.5 rounded-2xl border border-zinc-800">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-zinc-400" />
+              <span className="text-xs font-mono whitespace-nowrap">{delay}sn Gecikme</span>
+            </div>
             <input 
               type="range" min="1" max="15" value={delay} 
               onChange={(e) => setDelay(parseInt(e.target.value))}
-              className="w-24 h-1 accent-white"
+              className="w-24 xs:w-32 h-1 accent-white appearance-none bg-zinc-700 rounded-full"
             />
           </div>
-          {isRecording ? (
-             <button 
-              onClick={stopMonitor}
-              className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
-            >
-              <Pause className="w-4 h-4" />
-              Kamerayı Kapat
-            </button>
-          ) : (
-            <button 
-              onClick={startMonitor}
-              className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-zinc-200 transition-colors"
-            >
-              <Camera className="w-4 h-4" />
-              Kamerayı Başlat
-            </button>
-          )}
+          <div className="flex gap-2">
+            {isRecording ? (
+               <button 
+                onClick={stopMonitor}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-full font-bold text-xs hover:bg-red-700 transition-colors whitespace-nowrap"
+              >
+                <Pause className="w-4 h-4" />
+                Durdur
+              </button>
+            ) : (
+              <button 
+                onClick={startMonitor}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-black px-5 py-2.5 rounded-full font-bold text-xs hover:bg-zinc-200 transition-colors whitespace-nowrap"
+              >
+                <Camera className="w-4 h-4" />
+                Kamerayı Başlat
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="relative flex-1 bg-zinc-950 rounded-[32px] border border-zinc-800 overflow-hidden flex items-center justify-center">
+      <div className="relative flex-1 min-h-[300px] bg-zinc-950 rounded-[32px] border border-zinc-800 overflow-hidden flex items-center justify-center">
         <video ref={videoRef} autoPlay muted playsInline className="absolute opacity-0 pointer-events-none w-1 h-1" />
         
         <canvas 
@@ -166,15 +170,15 @@ export const DelayedMonitor: React.FC = () => {
         {!isRecording && (
           <div className="flex flex-col items-center gap-4 animate-pulse">
             <Camera className="w-12 h-12 text-zinc-700" />
-            <p className="text-zinc-600 font-medium uppercase tracking-widest text-xs">Kamera kapalı</p>
+            <p className="text-zinc-600 font-medium uppercase tracking-widest text-[10px]">Kamera Hazır Değil</p>
           </div>
         )}
         
         {isRecording && (
-          <div className="absolute bottom-8 left-8 flex items-center gap-3 bg-black/60 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/10">
+          <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 flex items-center gap-3 bg-black/60 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/10">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[10px] uppercase tracking-widest font-bold text-white">Gecikmeli Yayın</span>
+              <span className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-white">Gecikmeli Yayın</span>
             </div>
             <div className="w-px h-3 bg-white/20" />
             <span className="text-xs font-mono text-zinc-300">-{delay}s</span>
@@ -182,21 +186,21 @@ export const DelayedMonitor: React.FC = () => {
         )}
 
         {error && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-lg text-sm">
+          <div className="absolute inset-x-4 bottom-4 bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-3 rounded-2xl text-xs font-medium text-center">
             {error}
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4 h-24">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-zinc-900/50 rounded-2xl border border-zinc-800/50 p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-zinc-800/50 flex items-center justify-center">
+          <div key={i} className="bg-zinc-900/50 rounded-2xl border border-zinc-800/50 p-4 flex items-center gap-4 transition-all hover:bg-zinc-900">
+            <div className="w-10 h-10 rounded-xl bg-zinc-800/50 flex items-center justify-center shrink-0">
                <RotateCcw className="w-5 h-5 text-zinc-600" />
             </div>
-            <div>
-              <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Tampon {i}</p>
-              <p className="text-xs text-zinc-400 font-medium">Hücre durumu aktif</p>
+            <div className="min-w-0">
+              <p className="text-[9px] md:text-[10px] text-zinc-500 uppercase font-bold tracking-widest truncate">Tampon {i}</p>
+              <p className="text-[11px] md:text-xs text-zinc-400 font-medium truncate">Senkronize Ediliyor...</p>
             </div>
           </div>
         ))}
