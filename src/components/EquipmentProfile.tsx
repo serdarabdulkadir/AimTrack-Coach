@@ -54,21 +54,21 @@ export const EquipmentProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-10 flex items-center justify-center h-full">
+      <div className="p-4 md:p-10 flex items-center justify-center h-full">
         <Loader2 className="w-8 h-8 animate-spin text-zinc-300" />
       </div>
     );
   }
 
   return (
-    <div className="p-10 max-w-4xl mx-auto space-y-10">
+    <div className="p-4 md:p-10 max-w-4xl mx-auto space-y-6 md:space-y-10">
       <header>
-        <h2 className="text-3xl font-bold tracking-tighter italic uppercase">Yay Verileri</h2>
-        <p className="text-zinc-500 font-medium italic serif">Tutarlı performans için hassas ekipman özellikleri.</p>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tighter italic uppercase">Yay Verileri</h2>
+        <p className="text-zinc-500 font-medium italic serif text-xs md:text-base">Tutarlı performans için hassas ekipman özellikleri.</p>
       </header>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-3xl p-6 md:p-8 border border-zinc-200 shadow-sm space-y-6">
           <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400">Ana Kurulum</h3>
           
           <div className="space-y-4">
@@ -177,9 +177,9 @@ export const EquipmentProfile: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-end items-center gap-4 pt-4">
+      <div className="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-4 pt-4">
         {saveSuccess && (
-          <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100">
+          <div className="flex items-center justify-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100">
             <CheckCircle2 className="w-4 h-4" />
             <span className="text-xs font-bold">Kaydedildi</span>
           </div>
@@ -187,7 +187,7 @@ export const EquipmentProfile: React.FC = () => {
         <button 
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 bg-black text-white px-8 py-4 rounded-3xl font-bold shadow-xl shadow-black/10 hover:scale-105 transition-all active:scale-95 disabled:opacity-50"
+          className="flex items-center justify-center gap-2 bg-black text-white px-8 py-4 rounded-3xl font-bold shadow-xl shadow-black/10 hover:scale-105 transition-all active:scale-95 disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
           Yapılandırmayı Kaydet

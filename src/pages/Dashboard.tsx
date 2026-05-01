@@ -361,54 +361,54 @@ export const Dashboard: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="p-10 space-y-10"
+              className="p-4 md:p-10 space-y-6 md:space-y-10"
             >
               <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-4">
                 <div className="w-full md:w-auto">
-                  <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-zinc-900 mb-2 italic uppercase">Performans Takibi</h2>
-                  <p className="text-zinc-500 font-medium italic serif text-sm md:text-base">"Odaklandığın an, hedefine ulaştığın andır."</p>
+                  <h2 className="text-2xl md:text-4xl font-bold tracking-tighter text-zinc-900 mb-2 italic uppercase">Performans Takibi</h2>
+                  <p className="text-zinc-500 font-medium italic serif text-xs md:text-base">"Odaklandığın an, hedefine ulaştığın andır."</p>
                 </div>
-                <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-end w-full md:w-auto">
-                  <div className="flex bg-zinc-100 p-1 rounded-2xl overflow-x-auto shrink-0">
+                <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-end w-full md:w-auto overflow-hidden">
+                  <div className="flex bg-zinc-100 p-1 rounded-2xl overflow-x-auto shrink-0 max-w-full">
                      <button 
                        onClick={() => setScoreFilter('all')}
-                       className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === 'all' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
+                       className={`px-3 md:px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === 'all' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
                      >
                        Hepsi
                      </button>
                      <button 
                        onClick={() => setScoreFilter('18m-3-spot')}
-                       className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === '18m-3-spot' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
+                       className={`px-3 md:px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === '18m-3-spot' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
                      >
                        18m
                      </button>
                      <button 
                        onClick={() => setScoreFilter('70m-single')}
-                       className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === '70m-single' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
+                       className={`px-3 md:px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === '70m-single' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
                      >
                        70m
                      </button>
                   </div>
                   <button 
                     onClick={() => setShowSession(true)}
-                    className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/10 hover:scale-105 transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 md:px-6 py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/10 hover:scale-105 transition-all active:scale-95 whitespace-nowrap"
                   >
                     <Play className="w-4 h-4 fill-current" />
                     Yeni Antrenman
                   </button>
-                  <div className="flex gap-8 md:gap-4 justify-between md:justify-end bg-white md:bg-transparent p-4 md:p-0 rounded-2xl border border-zinc-100 md:border-none">
+                  <div className="flex gap-4 md:gap-4 justify-between md:justify-end bg-white md:bg-transparent p-4 md:p-0 rounded-2xl border border-zinc-100 md:border-none">
                     <div className="text-left md:text-right">
-                      <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest mb-1">Ortalama Puan</p>
-                      <p className="text-2xl md:text-3xl font-mono font-medium">
+                      <p className="text-[9px] md:text-[10px] text-zinc-400 uppercase font-bold tracking-widest mb-1">Ortalama</p>
+                      <p className="text-xl md:text-3xl font-mono font-medium">
                         {scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length > 0 
                           ? (scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).reduce((acc, s) => acc + s.score, 0) / scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length).toFixed(1) 
                           : '0.0'}
                       </p>
                     </div>
-                    <div className="hidden md:block w-[1px] h-10 bg-zinc-200 mt-2" />
+                    <div className="w-[1px] h-8 bg-zinc-200 mt-2 self-center md:block" />
                     <div className="text-left md:text-right">
-                      <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest mb-1">En İyi (PB)</p>
-                      <p className="text-2xl md:text-3xl font-mono font-medium">
+                      <p className="text-[9px] md:text-[10px] text-zinc-400 uppercase font-bold tracking-widest mb-1">En İyi</p>
+                      <p className="text-xl md:text-3xl font-mono font-medium">
                         {scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length > 0 
                           ? Math.max(...scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).map(s => s.score)) 
                           : '0'}
@@ -461,21 +461,24 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
+                  <div className="bg-white rounded-3xl p-6 md:p-8 border border-zinc-200 shadow-sm">
                     <h3 className="text-lg font-bold mb-4">Yeni Puan Kaydı</h3>
-                    <div className="flex flex-col gap-4">
-                       <div className="flex gap-2">
-                          <input 
-                            type="number" 
-                            value={newScore.value}
-                            onChange={(e) => setNewScore({ ...newScore, value: e.target.value })}
-                            placeholder="Puan"
-                            className="flex-1 bg-zinc-50 border border-zinc-100 rounded-2xl p-4 outline-none focus:ring-2 ring-black/5"
-                          />
+                    <div className="flex flex-col gap-3">
+                       <div className="flex flex-col gap-3">
+                          <div className="relative">
+                            <input 
+                              type="number" 
+                              value={newScore.value}
+                              onChange={(e) => setNewScore({ ...newScore, value: e.target.value })}
+                              placeholder="Puan"
+                              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-4 outline-none focus:ring-2 ring-black/5 min-w-0 text-lg font-mono font-bold"
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold uppercase tracking-widest pointer-events-none">Tam Puan</div>
+                          </div>
                           <select 
                             value={newScore.label}
                             onChange={(e) => setNewScore({ ...newScore, label: e.target.value })}
-                            className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 outline-none font-bold text-zinc-600 text-xs"
+                            className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-4 outline-none font-bold text-zinc-600 text-xs appearance-none cursor-pointer"
                           >
                              <option>Antrenman</option>
                              <option>Yarışma</option>
@@ -483,7 +486,7 @@ export const Dashboard: React.FC = () => {
                        </div>
                        <button 
                          onClick={handleLogScore}
-                         className="bg-black text-white py-4 rounded-2xl font-bold hover:bg-zinc-800 transition-all active:scale-95 shadow-lg text-sm"
+                         className="w-full bg-black text-white py-4 rounded-2xl font-bold hover:bg-zinc-800 transition-all active:scale-95 shadow-lg text-sm mt-1"
                        >
                          Puanı Kaydet
                        </button>
@@ -561,19 +564,24 @@ export const Dashboard: React.FC = () => {
                     <h3 className="text-lg font-bold mb-4">Antrenman Geçmişi</h3>
                     <div className="space-y-3">
                        {scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).slice(0, 5).map(score => (
-                         <div key={score.id} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 hover:border-zinc-200 transition-all">
+                         <div key={score.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 hover:border-zinc-200 transition-all gap-4">
                             <div className="flex items-center gap-3">
-                               <History className="w-4 h-4 text-zinc-400" />
-                               <div>
-                                  <p className="text-sm font-bold">{score.label || 'Antrenman'}</p>
-                                  <p className="text-[10px] text-zinc-400 font-bold uppercase">{score.createdAt?.toDate().toLocaleDateString('tr-TR')} • {score.targetType}</p>
+                               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0">
+                                 <History className="w-5 h-5 text-zinc-400" />
+                               </div>
+                               <div className="min-w-0">
+                                  <p className="text-sm font-bold truncate">{score.label || 'Antrenman'}</p>
+                                  <p className="text-[10px] text-zinc-400 font-bold uppercase truncate">{score.createdAt?.toDate().toLocaleDateString('tr-TR')} • {score.targetType}</p>
                                </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                               <span className="font-mono font-bold text-lg">{score.score}</span>
+                            <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-4 border-t border-zinc-100 sm:border-none pt-3 sm:pt-0">
+                               <div className="flex items-center gap-2">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                 <span className="font-mono font-black text-xl tracking-tighter">{score.score}</span>
+                               </div>
                                <div className="flex gap-1">
-                                  <button onClick={() => setSelectedSession(score)} className="p-2 hover:bg-zinc-100 rounded-lg"><Eye className="w-4 h-4" /></button>
-                                  <button onClick={() => handleDeleteScore(score.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                  <button onClick={() => setSelectedSession(score)} className="p-2.5 hover:bg-zinc-100 rounded-xl transition-colors"><Eye className="w-4 h-4 text-zinc-500" /></button>
+                                  <button onClick={() => handleDeleteScore(score.id)} className="p-2.5 hover:bg-red-50 rounded-xl text-red-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                                </div>
                             </div>
                          </div>
@@ -675,19 +683,19 @@ export const Dashboard: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="p-10 space-y-10"
+              className="p-4 md:p-10 space-y-6 md:space-y-10"
             >
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                  <div>
-                    <h2 className="text-3xl font-bold tracking-tighter">
+                    <h2 className="text-2xl md:text-3xl font-bold tracking-tighter">
                       {selectedAthlete ? (
                         <button onClick={() => setSelectedAthlete(null)} className="flex items-center gap-2 hover:text-zinc-500 transition-colors">
                            <ChevronRight className="w-6 h-6 rotate-180" />
-                           {selectedAthlete.name || selectedAthlete.email}
+                           <span className="truncate max-w-[200px] sm:max-w-none">{selectedAthlete.name || selectedAthlete.email}</span>
                         </button>
                       ) : 'Sporcularım'}
                     </h2>
-                    <p className="text-zinc-500 font-medium font-mono font-bold uppercase tracking-widest text-[10px]">
+                    <p className="text-zinc-500 font-medium font-mono font-bold uppercase tracking-widest text-[9px] md:text-[10px]">
                       {selectedAthlete ? 'Sporcu Detayları ve Analiz' : `Aktif Liste (${athletes.length})`}
                     </p>
                  </div>
@@ -696,8 +704,8 @@ export const Dashboard: React.FC = () => {
               {selectedAthlete ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                    <div className="lg:col-span-2 space-y-6">
-                      <div className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm relative overflow-hidden">
-                         <div className="flex items-center justify-between mb-8">
+                      <div className="bg-white p-6 md:p-8 rounded-3xl border border-zinc-200 shadow-sm relative overflow-hidden">
+                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                             <div className="flex flex-col gap-1">
                                <h3 className="text-lg font-bold">Haftalık Performans</h3>
                                <div className="flex bg-zinc-100 p-1 rounded-xl w-fit">
@@ -705,7 +713,7 @@ export const Dashboard: React.FC = () => {
                                    onClick={() => setScoreFilter('all')}
                                    className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase transition-all ${scoreFilter === 'all' ? 'bg-white shadow-sm' : 'text-zinc-400'}`}
                                  >
-                                   All
+                                   Hepsi
                                  </button>
                                  <button 
                                    onClick={() => setScoreFilter('18m-3-spot')}
@@ -721,21 +729,21 @@ export const Dashboard: React.FC = () => {
                                  </button>
                                </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
                                <button 
                                  onClick={() => setShowSession(true)}
-                                 className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:scale-105 transition-all shadow-lg shadow-emerald-600/10"
+                                 className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:scale-105 transition-all shadow-lg shadow-emerald-600/10"
                                >
                                  <Play className="w-4 h-4 fill-current" />
-                                 Antrenman Başlat
+                                 Başlat
                                </button>
                                <button 
                                  onClick={handleGenerateAIPlan}
                                  disabled={isGenerating}
-                                 className="flex items-center gap-2 bg-zinc-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-black transition-all disabled:opacity-50"
+                                 className="flex items-center justify-center gap-2 bg-zinc-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-black transition-all disabled:opacity-50"
                                >
                                  <Sparkles className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-                                 {isGenerating ? 'Zekai Analiz Ediyor...' : 'Zekai Planı Oluştur'}
+                                 {isGenerating ? 'Analiz...' : 'Zekai Planı'}
                                </button>
                             </div>
                          </div>

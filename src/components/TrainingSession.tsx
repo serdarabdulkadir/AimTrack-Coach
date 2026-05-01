@@ -306,49 +306,49 @@ export const TrainingSession: React.FC<TrainingSessionProps> = ({ athleteId, coa
                  <p className="text-zinc-500 font-medium">Harika iş çıkardın. İşte performans verilerin.</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                 <div className="bg-white p-8 rounded-[40px] border border-zinc-100 text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                 <div className="bg-white p-6 md:p-8 rounded-3xl md:rounded-[40px] border border-zinc-100">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Toplam Puan</p>
-                    <p className="text-5xl font-mono font-bold tracking-tighter">{currentTotal}</p>
+                    <p className="text-4xl md:text-5xl font-mono font-bold tracking-tighter">{currentTotal}</p>
                  </div>
-                 <div className="bg-white p-8 rounded-[40px] border border-zinc-100 text-center">
+                 <div className="bg-white p-6 md:p-8 rounded-3xl md:rounded-[40px] border border-zinc-100">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Ok Adedi</p>
-                    <p className="text-5xl font-mono font-bold tracking-tighter">{allEnds.flat().length + currentArrows.length}</p>
+                    <p className="text-4xl md:text-5xl font-mono font-bold tracking-tighter">{allEnds.flat().length + currentArrows.length}</p>
                  </div>
               </div>
 
-              <div className="bg-zinc-900 rounded-[40px] p-8 text-white">
+              <div className="bg-zinc-900 rounded-3xl md:rounded-[40px] p-6 md:p-8 text-white">
                  <div className="flex justify-between items-center mb-6">
-                    <h4 className="text-sm font-bold uppercase tracking-widest text-zinc-500">İstatistikler</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-500 italic">İstatistik Analizi</h4>
                  </div>
                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                       <span className="text-zinc-400 text-sm">Target</span>
-                       <span className="font-bold">{currentConfig.name}</span>
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                       <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">Disiplin</span>
+                       <span className="font-bold text-sm">{currentConfig.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                       <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">X Sayısı</span>
+                       <span className="font-bold text-sm">{[...allEnds, currentArrows].flat().filter(x => x === 'X').length}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                       <span className="text-zinc-400 text-sm">X Sayısı</span>
-                       <span className="font-bold">{[...allEnds, currentArrows].flat().filter(x => x === 'X').length}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                       <span className="text-zinc-400 text-sm">Ortalama</span>
-                       <span className="font-bold">{((allEnds.flat().length + currentArrows.length) > 0 ? currentTotal / (allEnds.flat().length + currentArrows.length) : 0).toFixed(2)}</span>
+                       <span className="text-zinc-500 text-xs uppercase font-bold tracking-wider">Ortalama / Ok</span>
+                       <span className="font-mono font-bold text-emerald-400 text-lg">{((allEnds.flat().length + currentArrows.length) > 0 ? currentTotal / (allEnds.flat().length + currentArrows.length) : 0).toFixed(2)}</span>
                     </div>
                  </div>
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                  <button 
                   onClick={handleFinishAndSave}
                   disabled={isSaving}
-                  className="w-full bg-black text-white py-5 rounded-[32px] font-bold text-lg shadow-2xl shadow-black/20 hover:scale-105 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  className="w-full bg-black text-white py-5 rounded-3xl font-bold text-lg shadow-2xl shadow-black/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                  >
-                   {isSaving ? <X className="animate-spin w-5 h-5" /> : <Save className="w-6 h-6" />}
+                   {isSaving ? <Loader2 className="animate-spin w-5 h-5" /> : <Save className="w-6 h-6" />}
                    Verileri Profile Kaydet
                  </button>
                  <button 
                    onClick={onClose}
-                   className="w-full py-4 text-zinc-400 font-bold hover:text-black transition-colors"
+                   className="w-full py-4 text-zinc-400 font-bold hover:text-black transition-colors text-sm"
                  >
                    Kaydetmeden Kapat
                  </button>

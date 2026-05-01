@@ -74,16 +74,16 @@ export const TrainingPlan: React.FC = () => {
   };
 
   return (
-    <div className="p-10 max-w-4xl mx-auto space-y-10">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tighter">{planTitle}</h2>
-          <p className="text-zinc-500 font-medium text-sm max-w-md">{planFocus}</p>
+    <div className="p-4 md:p-10 max-w-4xl mx-auto space-y-6 md:space-y-10">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tighter">{planTitle}</h2>
+          <p className="text-zinc-500 font-medium text-xs md:text-sm max-w-md">{planFocus}</p>
         </div>
         <button 
           onClick={handleGenerateAI}
           disabled={isGenerating}
-          className="flex items-center gap-2 bg-zinc-900 text-white px-5 py-2.5 rounded-2xl font-bold text-sm hover:scale-105 transition-transform disabled:opacity-50"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-zinc-900 text-white px-5 py-3 rounded-2xl font-bold text-sm hover:scale-105 transition-transform disabled:opacity-50"
         >
           {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
           AI Plan Oluştur
