@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Base user profile for athletes and coaches",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["athlete", "coach"] },
+        "photoUrl": { "type": "string" },
+        "coachId": { "type": "string", "description": "Reference to coach UID if role is athlete" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "AthleteProfile": {
+      "title": "Athlete Profile",
+      "description": "Specific data for archers including equipment",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "equipment": {
+          "type": "object",
+          "properties": {
+            "riser": { "type": "string" },
+            "limbs": { "type": "string" },
+            "arrows": { "type": "string" },
+            "stabilizer": { "type": "string" },
+            "drawWeight": { "type": "number" },
+            "drawLength": { "type": "number" }
+          }
+        },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "averageScore": { "type": "number" },
+            "personalBest": { "type": "number" }
+          }
+        }
+      },
+      "required": ["uid"]
+    },
+    "TrainingSession": {
+      "title": "Training Session",
+      "description": "Records of practice or competition scores",
+      "type": "object",
+      "properties": {
+        "athleteId": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["training", "competition"] },
+        "score": { "type": "number" },
+        "arrowsShot": { "type": "number" },
+        "notes": { "type": "string" }
+      },
+      "required": ["athleteId", "date", "type", "score"]
+    },
+    "Analysis": {
+      "title": "Analysis",
+      "description": "Coach feedback on video/photo analysis",
+      "type": "object",
+      "properties": {
+        "athleteId": { "type": "string" },
+        "coachId": { "type": "string" },
+        "type": { "type": "string", "enum": ["video", "image"] },
+        "mediaUrl": { "type": "string" },
+        "feedback": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["athleteId", "coachId", "type", "mediaUrl", "createdAt"]
+    },
+    "TrainingPlan": {
+      "title": "Training Plan",
+      "description": "AI-generated or coach-modified training plan",
+      "type": "object",
+      "properties": {
+        "athleteId": { "type": "string" },
+        "coachId": { "type": "string" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "completed", "archived"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["athleteId", "coachId", "status", "createdAt"]
+    },
+    "TrainingTask": {
+      "title": "Training Task",
+      "description": "Actionable task within a training plan",
+      "type": "object",
+      "properties": {
+        "planId": { "type": "string" },
+        "text": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "order": { "type": "number" }
+      },
+      "required": ["planId", "text", "completed"]
+    },
+    "ConnectionRequest": {
+      "title": "Connection Request",
+      "description": "Coach request to an athlete to join their team",
+      "type": "object",
+      "properties": {
+        "fromId": { "type": "string" },
+        "fromName": { "type": "string" },
+        "toEmail": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fromId", "toEmail", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users": { "schema": "User", "description": "Global user profiles" },
+    "profiles": { "schema": "AthleteProfile", "description": "Athlete detailed data" },
+    "sessions": { "schema": "TrainingSession", "description": "Training history" },
+    "analyses": { "schema": "Analysis", "description": "Feedback and reviews" },
+    "plans": { "schema": "TrainingPlan", "description": "Athlete training plans" },
+    "plans/{planId}/tasks": { "schema": "TrainingTask", "description": "Tasks for a specific plan" },
+    "requests": { "schema": "ConnectionRequest", "description": "Coach-Athlete connection requests" }
+  }
+}

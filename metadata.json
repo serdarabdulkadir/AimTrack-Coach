@@ -1,0 +1,6 @@
+{
+  "name": "AimTrack Coach",
+  "description": "Professional archery performance tracking and coaching platform with delayed video replay, AI-driven training plans, and comprehensive progress analytics.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["AI Training Plans", "Video Analysis", "Performance Tracking"]
+}

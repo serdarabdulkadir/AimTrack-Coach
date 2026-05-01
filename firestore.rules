@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // HELPERS
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getAthleteData(athleteId) {
+      return get(/databases/$(database)/documents/users/$(athleteId)).data;
+    }
+
+    function isCoachOf(athleteId) {
+      return isSignedIn() && getAthleteData(athleteId).coachId == request.auth.uid;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // -------------------------------------------------------------------------
+    // GLOBAL CATCH-ALL
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // USERS & PROFILES
+    // -------------------------------------------------------------------------
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn(); // Necessary for discovery and coach-athlete mapping
+      allow write: if isOwner(userId) && (
+        // Prevent self-role-assignment or coachId hijacking during update
+        !('role' in incoming()) || incoming().role == resource.data.role
+      );
+      allow create: if isOwner(userId);
+    }
+
+    // -------------------------------------------------------------------------
+    // SCORES (Performance Logging)
+    // -------------------------------------------------------------------------
+    match /scores/{scoreId} {
+      allow get: if isSignedIn() && (
+        isOwner(resource.data.athleteId) || 
+        isCoachOf(resource.data.athleteId)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.athleteId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+      allow create: if isSignedIn() && isOwner(incoming().athleteId);
+      allow update, delete: if isSignedIn() && isOwner(resource.data.athleteId);
+    }
+
+    // -------------------------------------------------------------------------
+    // PLANS (Training Schedules)
+    // -------------------------------------------------------------------------
+    match /plans/{planId} {
+      allow read: if isSignedIn() && (
+        resource.data.athleteId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+      allow create: if isSignedIn() && (
+        incoming().athleteId == request.auth.uid ||
+        incoming().coachId == request.auth.uid
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.athleteId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // ANALYSES (Coach Feedback)
+    // -------------------------------------------------------------------------
+    match /analyses/{analysisId} {
+      allow get: if isSignedIn() && (
+        isOwner(resource.data.athleteId) || 
+        isOwner(resource.data.coachId)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.athleteId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+      allow create: if isSignedIn() && isOwner(incoming().coachId);
+      allow delete: if isSignedIn() && isOwner(resource.data.coachId);
+    }
+
+    // -------------------------------------------------------------------------
+    // REQUESTS (Coach-Athlete Connection Invitation)
+    // -------------------------------------------------------------------------
+    match /requests/{requestId} {
+      allow get: if isSignedIn() && (
+        request.auth.token.email == resource.data.toEmail ||
+        isOwner(resource.data.fromId)
+      );
+      allow list: if isSignedIn() && (
+        request.auth.token.email == resource.data.toEmail ||
+        resource.data.fromId == request.auth.uid
+      );
+      allow create: if isSignedIn() && isOwner(incoming().fromId);
+      allow update: if isSignedIn() && (
+        request.auth.token.email == resource.data.toEmail ||
+        resource.data.fromId == request.auth.uid
+      );
+    }
+  }
+}
