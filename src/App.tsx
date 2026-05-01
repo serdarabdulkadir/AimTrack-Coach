@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -18,13 +20,22 @@ function AppContent() {
     );
   }
 
-  return user ? <Dashboard /> : <Login />;
+  return (
+    <Routes>
+      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+      <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+      <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   );
 }

@@ -56,6 +56,25 @@ export const CoachTools: React.FC = () => {
     }
   };
 
+  const cancelRequest = async (requestId: string) => {
+    try {
+      await updateDoc(doc(db, 'requests', requestId), { status: 'cancelled' });
+      // If was accepted, we might want to remove the coachId from athlete, 
+      // but usually an 'accepted' request is just a log. 
+      // For now, just change status.
+    } catch (err) {
+      console.error("Cancel request error:", err);
+    }
+  };
+
+  const removeRequest = async (requestId: string) => {
+    try {
+      await updateDoc(doc(db, 'requests', requestId), { status: 'removed' });
+    } catch (err) {
+      console.error("Remove request error:", err);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm">
@@ -91,16 +110,25 @@ export const CoachTools: React.FC = () => {
       <div className="space-y-4">
         <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400">Gönderilen İstekler</h3>
         <div className="grid grid-cols-1 gap-3">
-          {requests.map(req => (
-            <div key={req.id} className="bg-white p-4 rounded-2xl border border-zinc-100 flex items-center justify-between">
+          {requests.filter(r => r.status !== 'removed' && r.status !== 'cancelled' && r.status !== 'rejected').map(req => (
+            <div key={req.id} className="bg-white p-4 rounded-2xl border border-zinc-100 flex items-center justify-between group">
               <div>
                 <p className="font-bold">{req.toEmail}</p>
                 <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">{req.status}</p>
               </div>
-              <div className={`w-2 h-2 rounded-full ${req.status === 'pending' ? 'bg-amber-400 animate-pulse' : req.status === 'accepted' ? 'bg-green-500' : 'bg-red-500'}`} />
+              <div className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${req.status === 'pending' ? 'bg-amber-400 animate-pulse' : 'bg-green-500'}`} />
+                <button 
+                  onClick={() => req.status === 'pending' ? cancelRequest(req.id) : removeRequest(req.id)}
+                  className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  title="İptal Et/Kaldır"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
-          {requests.length === 0 && <p className="text-zinc-400 italic text-sm">Henüz bir istek gönderilmedi.</p>}
+          {requests.filter(r => r.status !== 'removed' && r.status !== 'cancelled' && r.status !== 'rejected').length === 0 && <p className="text-zinc-400 italic text-sm">Bekleyen aktif istek bulunmuyor.</p>}
         </div>
       </div>
     </div>

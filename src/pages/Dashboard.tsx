@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Target, TrendingUp, Calendar, ArrowRight, User as UserIcon, Settings, LogOut, Camera, ChevronRight } from 'lucide-react';
+import { Trophy, Target, TrendingUp, Calendar, ArrowRight, User as UserIcon, Settings, LogOut, Camera, ChevronRight, Play, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
@@ -8,10 +8,13 @@ import { EquipmentProfile } from '../components/EquipmentProfile';
 import { DelayedMonitor } from '../components/DelayedMonitor';
 import { UserProfile } from '../components/UserProfile';
 import { CoachTools, AthleteRequests } from '../components/CoachAthleteConnection';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { generateAITrainingPlan, TrainingPlan as AITrainingPlan } from '../services/geminiService';
-import { Sparkles, Brain, Send, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Brain, Send, CheckCircle2, History, Trash2, Eye } from 'lucide-react';
+
+import { TrainingSession } from '../components/TrainingSession';
+import { Leaderboard } from '../components/Leaderboard';
 
 const data = [
   { name: 'Pzt', score: 285 },
@@ -25,7 +28,10 @@ const data = [
 
 export const Dashboard: React.FC = () => {
   const { user, role, userData } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'monitor' | 'plan' | 'equipment' | 'coach' | 'profile'>(role === 'coach' ? 'coach' : 'overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'monitor' | 'plan' | 'equipment' | 'coach' | 'profile' | 'leaderboard'>(role === 'coach' ? 'coach' : 'overview');
+  const [showSession, setShowSession] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<any | null>(null);
+  const [scoreFilter, setScoreFilter] = useState<'all' | '18m-3-spot' | '70m-single'>('all');
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthlete, setSelectedAthlete] = useState<any | null>(null);
   const [aiPlan, setAiPlan] = useState<AITrainingPlan | null>(null);
@@ -136,6 +142,15 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleDeleteScore = async (scoreId: string) => {
+    if (!window.confirm('Bu antrenman kaydını silmek istediğinize emin misiniz?')) return;
+    try {
+      await deleteDoc(doc(db, 'scores', scoreId));
+    } catch (error) {
+      console.error("Score delete error:", error);
+    }
+  };
+
   const handleSendPlan = async () => {
     if (!aiPlan || !selectedAthlete) return;
     try {
@@ -157,6 +172,8 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
   useEffect(() => {
     if (role === 'coach') {
       setActiveTab('coach');
@@ -164,6 +181,10 @@ export const Dashboard: React.FC = () => {
       setActiveTab('overview');
     }
   }, [role]);
+
+  useEffect(() => {
+    setShowMobileSidebar(false);
+  }, [activeTab]);
 
   useEffect(() => {
     if (role !== 'coach' || !user) return;
@@ -177,10 +198,47 @@ export const Dashboard: React.FC = () => {
   }, [role, user]);
 
   return (
-    <div className="relative flex h-screen bg-[#fcfcfc] overflow-hidden font-sans">
+    <div className="relative flex flex-col md:flex-row h-screen bg-[#fcfcfc] overflow-hidden font-sans">
       <AthleteRequests />
+      {showSession && user && (
+        <TrainingSession 
+          athleteId={selectedAthlete?.uid || user.uid} 
+          coachId={role === 'coach' ? user.uid : (userData?.coachId || null)}
+          athleteName={selectedAthlete?.name || user.displayName}
+          onClose={() => setShowSession(false)} 
+        />
+      )}
+
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-zinc-100 shrink-0">
+        <div className="flex items-center gap-2">
+          <Target className="w-6 h-6" />
+          <h1 className="text-lg font-bold">AimTrack</h1>
+        </div>
+        <button 
+          onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+          className="p-2 hover:bg-zinc-100 rounded-xl"
+        >
+          <div className="w-6 h-0.5 bg-black mb-1.5" />
+          <div className="w-6 h-0.5 bg-black mb-1.5" />
+          <div className="w-6 h-0.5 bg-black" />
+        </button>
+      </div>
+
       {/* Sidebar */}
-      <aside className="w-72 border-r border-zinc-200 flex flex-col bg-white">
+      <aside className={`
+        fixed inset-0 z-[60] bg-white md:relative md:translate-x-0 md:bg-white md:z-10
+        w-72 border-r border-zinc-200 flex flex-col transition-transform duration-300
+        ${showMobileSidebar ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {showMobileSidebar && (
+          <button 
+            onClick={() => setShowMobileSidebar(false)}
+            className="md:hidden absolute top-8 right-4 p-2 bg-zinc-100 rounded-full"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
         <div className="p-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center shadow-lg shadow-black/20">
@@ -199,6 +257,13 @@ export const Dashboard: React.FC = () => {
               >
                 <TrendingUp className="w-5 h-5" />
                 <span>Genel Bakış</span>
+              </button>
+              <button 
+                onClick={() => setActiveTab('leaderboard')}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'leaderboard' ? 'bg-zinc-100 text-black shadow-sm font-medium' : 'text-zinc-500 hover:text-black hover:bg-zinc-50'}`}
+              >
+                <Trophy className="w-5 h-5" />
+                <span>Sıralama</span>
               </button>
               <button 
                 onClick={() => setActiveTab('monitor')}
@@ -241,6 +306,13 @@ export const Dashboard: React.FC = () => {
                 <span>Sporcularım</span>
               </button>
               <button 
+                onClick={() => setActiveTab('leaderboard')}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'leaderboard' ? 'bg-zinc-100 text-black shadow-sm font-medium' : 'text-zinc-500 hover:text-black hover:bg-zinc-50'}`}
+              >
+                <Trophy className="w-5 h-5" />
+                <span>Sıralama</span>
+              </button>
+              <button 
                 onClick={() => setActiveTab('monitor')}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'monitor' ? 'bg-zinc-100 text-black shadow-sm font-medium' : 'text-zinc-500 hover:text-black hover:bg-zinc-50'}`}
               >
@@ -265,7 +337,7 @@ export const Dashboard: React.FC = () => {
                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.uid || 'athlete'}`} alt="avatar" />
                 </div>
                 <div>
-                   <p className="text-sm font-bold truncate w-32">{user?.displayName || (user?.email === 'sporcu@archelite.com' ? 'Elit Sporcu' : 'Baş Antrenör')}</p>
+                   <p className="text-sm font-bold truncate w-32">{user?.displayName || 'Kullanıcı'}</p>
                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">{role === 'coach' ? 'Antrenör' : 'Sporcu'}</p>
                 </div>
              </div>
@@ -291,34 +363,63 @@ export const Dashboard: React.FC = () => {
               exit={{ opacity: 0, y: -20 }}
               className="p-10 space-y-10"
             >
-              <header className="flex justify-between items-end">
-                <div>
-                  <h2 className="text-4xl font-bold tracking-tighter text-zinc-900 mb-2 italic uppercase">Performans Takibi</h2>
-                  <p className="text-zinc-500 font-medium italic serif">"Odaklandığın an, hedefine ulaştığın andır."</p>
+              <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-4">
+                <div className="w-full md:w-auto">
+                  <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-zinc-900 mb-2 italic uppercase">Performans Takibi</h2>
+                  <p className="text-zinc-500 font-medium italic serif text-sm md:text-base">"Odaklandığın an, hedefine ulaştığın andır."</p>
                 </div>
-                <div className="flex gap-4">
-                  <div className="text-right">
-                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest mb-1">Ortalama Puan</p>
-                    <p className="text-3xl font-mono font-medium">
-                      {scores.length > 0 
-                        ? (scores.reduce((acc, s) => acc + s.score, 0) / scores.length).toFixed(1) 
-                        : '0.0'}
-                    </p>
+                <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-end w-full md:w-auto">
+                  <div className="flex bg-zinc-100 p-1 rounded-2xl overflow-x-auto shrink-0">
+                     <button 
+                       onClick={() => setScoreFilter('all')}
+                       className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === 'all' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
+                     >
+                       Hepsi
+                     </button>
+                     <button 
+                       onClick={() => setScoreFilter('18m-3-spot')}
+                       className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === '18m-3-spot' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
+                     >
+                       18m
+                     </button>
+                     <button 
+                       onClick={() => setScoreFilter('70m-single')}
+                       className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all whitespace-nowrap ${scoreFilter === '70m-single' ? 'bg-white shadow-sm text-black' : 'text-zinc-400'}`}
+                     >
+                       70m
+                     </button>
                   </div>
-                  <div className="w-[1px] h-10 bg-zinc-200 mt-2" />
-                  <div className="text-right">
-                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest mb-1">En İyi (PB)</p>
-                    <p className="text-3xl font-mono font-medium">
-                      {scores.length > 0 
-                        ? Math.max(...scores.map(s => s.score)) 
-                        : '0'}
-                    </p>
+                  <button 
+                    onClick={() => setShowSession(true)}
+                    className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/10 hover:scale-105 transition-all active:scale-95"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    Yeni Antrenman
+                  </button>
+                  <div className="flex gap-8 md:gap-4 justify-between md:justify-end bg-white md:bg-transparent p-4 md:p-0 rounded-2xl border border-zinc-100 md:border-none">
+                    <div className="text-left md:text-right">
+                      <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest mb-1">Ortalama Puan</p>
+                      <p className="text-2xl md:text-3xl font-mono font-medium">
+                        {scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length > 0 
+                          ? (scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).reduce((acc, s) => acc + s.score, 0) / scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length).toFixed(1) 
+                          : '0.0'}
+                      </p>
+                    </div>
+                    <div className="hidden md:block w-[1px] h-10 bg-zinc-200 mt-2" />
+                    <div className="text-left md:text-right">
+                      <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest mb-1">En İyi (PB)</p>
+                      <p className="text-2xl md:text-3xl font-mono font-medium">
+                        {scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length > 0 
+                          ? Math.max(...scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).map(s => s.score)) 
+                          : '0'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </header>
 
-              <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2 bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white rounded-3xl p-4 md:p-8 border border-zinc-200 shadow-sm">
                    <div className="flex items-center justify-between mb-8">
                       <h3 className="text-lg font-bold">Antrenman İstikrarı</h3>
                       <select className="bg-zinc-100 border-none rounded-lg px-3 py-1 text-xs font-bold text-zinc-600 focus:ring-0">
@@ -328,7 +429,7 @@ export const Dashboard: React.FC = () => {
                    </div>
                    <div className="h-[300px] w-full">
                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={scores.length > 0 ? scores : data}>
+                        <LineChart data={scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length > 0 ? scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter) : (scoreFilter === 'all' ? data : [])}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                           <XAxis 
                             dataKey="name" 
@@ -455,6 +556,31 @@ export const Dashboard: React.FC = () => {
                         </div>
                      </div>
                   </div>
+
+                  <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm">
+                    <h3 className="text-lg font-bold mb-4">Antrenman Geçmişi</h3>
+                    <div className="space-y-3">
+                       {scores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).slice(0, 5).map(score => (
+                         <div key={score.id} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 hover:border-zinc-200 transition-all">
+                            <div className="flex items-center gap-3">
+                               <History className="w-4 h-4 text-zinc-400" />
+                               <div>
+                                  <p className="text-sm font-bold">{score.label || 'Antrenman'}</p>
+                                  <p className="text-[10px] text-zinc-400 font-bold uppercase">{score.createdAt?.toDate().toLocaleDateString('tr-TR')} • {score.targetType}</p>
+                               </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                               <span className="font-mono font-bold text-lg">{score.score}</span>
+                               <div className="flex gap-1">
+                                  <button onClick={() => setSelectedSession(score)} className="p-2 hover:bg-zinc-100 rounded-lg"><Eye className="w-4 h-4" /></button>
+                                  <button onClick={() => handleDeleteScore(score.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                               </div>
+                            </div>
+                         </div>
+                       ))}
+                       {scores.length === 0 && <p className="text-center text-xs text-zinc-400 italic py-4">Henüz kayıt bulunmuyor.</p>}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -568,12 +694,41 @@ export const Dashboard: React.FC = () => {
               </div>
 
               {selectedAthlete ? (
-                <div className="grid grid-cols-3 gap-6">
-                   <div className="col-span-2 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                   <div className="lg:col-span-2 space-y-6">
                       <div className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm relative overflow-hidden">
                          <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-lg font-bold">Haftalık Performans</h3>
+                            <div className="flex flex-col gap-1">
+                               <h3 className="text-lg font-bold">Haftalık Performans</h3>
+                               <div className="flex bg-zinc-100 p-1 rounded-xl w-fit">
+                                 <button 
+                                   onClick={() => setScoreFilter('all')}
+                                   className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase transition-all ${scoreFilter === 'all' ? 'bg-white shadow-sm' : 'text-zinc-400'}`}
+                                 >
+                                   All
+                                 </button>
+                                 <button 
+                                   onClick={() => setScoreFilter('18m-3-spot')}
+                                   className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase transition-all ${scoreFilter === '18m-3-spot' ? 'bg-white shadow-sm' : 'text-zinc-400'}`}
+                                 >
+                                   18m
+                                 </button>
+                                 <button 
+                                   onClick={() => setScoreFilter('70m-single')}
+                                   className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase transition-all ${scoreFilter === '70m-single' ? 'bg-white shadow-sm' : 'text-zinc-400'}`}
+                                 >
+                                   70m
+                                 </button>
+                               </div>
+                            </div>
                             <div className="flex gap-2">
+                               <button 
+                                 onClick={() => setShowSession(true)}
+                                 className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:scale-105 transition-all shadow-lg shadow-emerald-600/10"
+                               >
+                                 <Play className="w-4 h-4 fill-current" />
+                                 Antrenman Başlat
+                               </button>
                                <button 
                                  onClick={handleGenerateAIPlan}
                                  disabled={isGenerating}
@@ -586,7 +741,7 @@ export const Dashboard: React.FC = () => {
                          </div>
                          <div className="h-[200px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                               <LineChart data={athleteScores.length > 0 ? athleteScores : data}>
+                               <LineChart data={athleteScores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).length > 0 ? athleteScores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter) : (scoreFilter === 'all' ? data : [])}>
                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                                  <Tooltip />
@@ -682,6 +837,31 @@ export const Dashboard: React.FC = () => {
                            <span className="text-sm font-bold">{successMsg}</span>
                         </div>
                       )}
+
+                      <div className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm">
+                        <h3 className="text-lg font-bold mb-6">Sporcu Antrenman Geçmişi</h3>
+                        <div className="space-y-3">
+                           {athleteScores.filter(s => scoreFilter === 'all' || s.targetType === scoreFilter).slice(0, 5).map(score => (
+                             <div key={score.id} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 hover:border-zinc-200 transition-all">
+                                <div className="flex items-center gap-3">
+                                   <History className="w-4 h-4 text-zinc-400" />
+                                   <div>
+                                      <p className="text-sm font-bold">{score.label || 'Antrenman'}</p>
+                                      <p className="text-[10px] text-zinc-400 font-bold uppercase">{score.createdAt?.toDate().toLocaleDateString('tr-TR')} • {score.targetType}</p>
+                                   </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                   <span className="font-mono font-bold text-lg">{score.score}</span>
+                                   <div className="flex gap-1">
+                                      <button onClick={() => setSelectedSession(score)} className="p-2 hover:bg-zinc-100 rounded-lg"><Eye className="w-4 h-4" /></button>
+                                      <button onClick={() => handleDeleteScore(score.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                   </div>
+                                </div>
+                             </div>
+                           ))}
+                           {athleteScores.length === 0 && <p className="text-center text-xs text-zinc-400 italic py-4">Kayıtlı veri bulunamadı.</p>}
+                        </div>
+                      </div>
 
                       <div className="bg-white p-8 rounded-3xl border border-zinc-200">
                          <h3 className="text-lg font-bold mb-4">Geri Bildirim ve Analiz</h3>
@@ -794,6 +974,17 @@ export const Dashboard: React.FC = () => {
             </motion.div>
           )}
 
+          {activeTab === 'leaderboard' && (
+            <motion.div 
+              key="leaderboard"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              <Leaderboard />
+            </motion.div>
+          )}
+
           {activeTab === 'profile' && (
             <motion.div 
               key="profile"
@@ -802,6 +993,89 @@ export const Dashboard: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
             >
               <UserProfile />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Session Detail Modal */}
+        <AnimatePresence>
+          {selectedSession && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
+            >
+              <motion.div 
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden"
+              >
+                <div className="p-8 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
+                   <div>
+                      <h3 className="text-2xl font-bold tracking-tight">Antrenman Detayı</h3>
+                      <p className="text-xs text-zinc-500 font-medium">{selectedSession.createdAt?.toDate().toLocaleString('tr-TR')}</p>
+                   </div>
+                   <button 
+                     onClick={() => setSelectedSession(null)}
+                     className="w-10 h-10 rounded-full bg-white border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 transition-colors"
+                   >
+                      <X className="w-4 h-4" />
+                   </button>
+                </div>
+                <div className="p-8 space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="bg-zinc-50 p-4 rounded-3xl border border-zinc-100">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Toplam Puan</p>
+                        <p className="text-3xl font-mono font-bold">{selectedSession.score}</p>
+                     </div>
+                     <div className="bg-zinc-50 p-4 rounded-3xl border border-zinc-100">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Ok Sayısı</p>
+                        <p className="text-3xl font-mono font-bold">{selectedSession.arrowCount || 0}</p>
+                     </div>
+                  </div>
+
+                  <div className="space-y-4">
+                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Seriler</h4>
+                     <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                        {selectedSession.details && (typeof selectedSession.details === 'string' || Array.isArray(selectedSession.details)) ? (
+                          (Array.isArray(selectedSession.details) ? selectedSession.details : selectedSession.details.split(';')).map((end: string, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                               <span className="text-xs font-bold text-zinc-400">End {idx + 1}</span>
+                               <div className="flex gap-1 flex-wrap justify-end">
+                                  {end.split(',').map((arrow: string, aIdx: number) => (
+                                    <span key={aIdx} className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                      arrow === 'X' || arrow === '10' || arrow === '9' ? 'bg-yellow-400' :
+                                      arrow === '8' || arrow === '7' ? 'bg-red-500 text-white' :
+                                      arrow === '6' || arrow === '5' ? 'bg-sky-500 text-white' :
+                                      arrow === '4' || arrow === '3' ? 'bg-zinc-900 text-white' :
+                                      'bg-zinc-100 text-zinc-600'
+                                    }`}>
+                                      {arrow}
+                                    </span>
+                                  ))}
+                               </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-zinc-400 italic">Ok detayları mevcut değil.</p>
+                        )}
+                     </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      handleDeleteScore(selectedSession.id);
+                      setSelectedSession(null);
+                    }}
+                    className="w-full py-4 text-red-500 font-bold text-sm hover:bg-red-50 rounded-2xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Bu Kaydı Sil
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>

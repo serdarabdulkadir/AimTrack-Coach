@@ -56,7 +56,10 @@ service cloud.firestore {
         resource.data.athleteId == request.auth.uid ||
         resource.data.coachId == request.auth.uid
       );
-      allow create: if isSignedIn() && isOwner(incoming().athleteId);
+      allow create: if isSignedIn() && (
+        isOwner(incoming().athleteId) || 
+        isCoachOf(incoming().athleteId)
+      );
       allow update, delete: if isSignedIn() && isOwner(resource.data.athleteId);
     }
 
