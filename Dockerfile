@@ -14,6 +14,7 @@ RUN npm run build
 # Production image
 FROM node:20-slim
 
+ENV NODE_ENV=production
 WORKDIR /app
 
 # Install production dependencies only

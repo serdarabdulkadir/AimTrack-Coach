@@ -10,8 +10,10 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 3000;
 
+  const isProduction = process.env.NODE_ENV === "production" || process.env.VITE_USER_NODE_ENV === "production";
+
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (!isProduction) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
